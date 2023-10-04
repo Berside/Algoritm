@@ -1,0 +1,3 @@
+﻿  algo.cpp
+C:\Users\bersi\source\repos\algo\algo\algo.cpp(16,21): warning C4267: инициализация: преобразование из "size_t" в "int"; возможна потеря данных
+  algo.vcxproj -> C:\Users\bersi\source\repos\algo\x64\Debug\algo.exe
