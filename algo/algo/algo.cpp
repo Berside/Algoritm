@@ -1,35 +1,65 @@
 ﻿#include <iostream>
-#include <vector>
 #include <fstream>
-#include <cstdlib>
+#include <chrono>
 using namespace std;
 
-void print(std::vector<int> const& input)
-{
-    for (int i = 0; i < input.size(); i++) {
-        std::cout << input.at(i) << ' ';
-    }
-}
 
-vector <int> sort_10(vector<int> a) {
-    int tmp;
-    int n = a.size();
-    for (int j = (n-1); j > 0; j--) {
+int SelectionSort(int a[], int N) {
+    int n = N;
+    for (int j = (n - 1); j >= 2; j--) {
         int max_index = j;
-        for (int i = j; i >= 0; i --) {
+        for (int i = j; i >= 0; i--) {
             if (a[i] > a[max_index]) {
-                max_index = i; // индекс минимального элемента
+                max_index = i;
             }
         }
         if (j != max_index) {
-            tmp = a[j];
-            a[j] = a[max_index];
-            a[max_index] = tmp;
-            print(a);
-            cout << endl;
+            swap(a[j], a[max_index]);
         }
     }
-    return a;
+}
+
+bool checkArray(int arr[], int N) {
+    for (int i = 0; i < N - 1; i++) {
+        if (arr[i] > arr[i + 1]) return false;
+    }
+    return true;
+}
+
+int log2RoundUp(int N) {
+    int i = 0;
+    while (pow(2, i) < N) {
+        i++;
+    }
+    return i;
+}
+
+void BatchersMergeSort(int arr[], int N) {
+    int t = log2RoundUp(N);
+    int p0 = pow(2, t - 1);
+    int p = p0;
+
+    while (p > 0) {
+        int q = p0, r = 0, d = p;
+
+        while (r == 0 || q != p) {
+            if (r != 0)
+            {
+                d = q - p;
+                q >>= 1;
+            }
+
+            for (int i = 0; i < N - d; i++) {
+                if (((i & p) == r) && arr[i] > arr[i + d]) {
+                    swap(arr[i], arr[i + d]);
+                }
+            }
+
+            r = p;
+        }
+
+        p = p / 2;
+    }
 }
 
 int compare(const void* x1, const void* x2)   // функция сравнения элементов массива
@@ -39,25 +69,57 @@ int compare(const void* x1, const void* x2)   // функция сравнени
 
 int main()
 {
-    vector <int> a = {};
-    int c [100] = {};
+    setlocale(LC_ALL, "RUS");
+    const int N = 5000;
+    int a[N] = {};
+    int c [N] = {};
     int n;
-    ifstream input("d100.txt");
-    for (int i = 0; i < 100; i++)
+    int bab[N] = {};
+    ifstream input("d5000.txt");
+    for (int i = 0; i < N; i++)
     {
         input >> n;
+        a[i] = n;
         c[i] = n;
-        a.push_back(n);
+        bab[i] = n;
     }
-    print(a);
-    cout << endl;
-    vector <int> b = {};
-    vector <int> g = {};
     input.close();
-    qsort(c,100, sizeof(int),compare);
-    b = sort_10(a);
-    print(b);
-    for (int i = 0; i < 100; i++) {
-        cout << c[i] << " ";
+
+    auto start = chrono::steady_clock::now();
+    qsort(c,N, sizeof(int),compare);
+    auto end = chrono::steady_clock::now();
+
+    auto start1 = chrono::steady_clock::now();
+    SelectionSort(a, N);
+    auto end1 = chrono::steady_clock::now();
+
+    auto start2 = chrono::steady_clock::now();
+    BatchersMergeSort(bab, N);
+    auto end2 = chrono::steady_clock::now();
+
+    long duration = chrono::duration_cast<chrono::microseconds>(end - start).count();
+    cout << endl << "Время сортировки qsort:" << " " <<  duration << endl;
+
+    long duration1 = chrono::duration_cast<chrono::microseconds>(end1 - start1).count(); 
+    cout << endl << "Время сортировки SelectionSort:" << " " << duration1 << endl;
+
+    long duration2 = chrono::duration_cast<chrono::microseconds>(end2 - start2).count(); 
+    cout << endl << "Время сортировки  BatchersMergeSort:" << " " << duration2 << endl;
+
+    ofstream out("Sorted.txt");
+    if (out.is_open()) {
+        for (int i = 0; i < N; i++) {
+            out << a[i] << "\n";
+        }
+        out.close();
     }
+
+    if (checkArray(a, N)) {
+        cout << "Numbers sorted correctly" << endl;
+    }
+    else {
+        cout << "Numbers sorted incorrectly" << endl;
+    }
+
+    return 0;
 }
